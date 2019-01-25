@@ -3,6 +3,9 @@ services:
   db:
     image: postgres:11
     environment:
-      POSTGRES_DB: db
+      POSTGRES_DB: ${ET_DB_NAME}
+      POSTGRES_USER: ${ET_DB_USER}
+      POSTGRES_PASSWORD: ${ET_DB_PASS}
+
     ports:
-    - 25432:5432
+    - ${ET_DB_PORT}:5432

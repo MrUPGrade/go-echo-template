@@ -2,28 +2,28 @@ package main
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"net/http"
 )
 
-type User struct {
-	Name string `json:"name"`
+type CustomContext struct {
+	echo.Context
+	DB *gorm.DB
 }
 
-type UserResource struct {
-}
+func EchoMiddleware(db *gorm.DB) func(h echo.HandlerFunc) echo.HandlerFunc {
 
-func (UserResource) getUser(c echo.Context) error {
-	return c.JSON(http.StatusOK, User{"Stanisław"})
-}
-
-func (UserResource) postUser(c echo.Context) (err error) {
-	u := new(User)
-	if err = c.Bind(u); err != nil {
-		c.Logger().Print(err)
+	return func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &CustomContext{
+				Context: c,
+				DB:      db,
+			}
+			return h(cc)
+		}
 	}
-	return c.JSON(http.StatusOK, u)
 }
 
 func main() {
@@ -32,7 +32,14 @@ func main() {
 		panic(err)
 	}
 
+	db, err := ConnectToDB()
+	defer db.Close()
+	db.AutoMigrate(&ToDo{})
+
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(EchoMiddleware(db))
+
 	if l, ok := e.Logger.(*log.Logger); ok {
 		l.SetHeader("${time_rfc3339} ${level}")
 		l.SetLevel(log.DEBUG)
@@ -42,5 +49,11 @@ func main() {
 
 	e.GET("/users", userResource.getUser)
 	e.POST("/users", userResource.postUser)
+
+	todoResource := ToDoResource{}
+
+	e.GET("/todos", todoResource.getToDos)
+	e.POST("/todos", todoResource.postToDo)
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", config.ServerHost, config.ServerPort)))
 }

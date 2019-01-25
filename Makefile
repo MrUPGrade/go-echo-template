@@ -1,9 +1,10 @@
+SHELL=/bin/bash
 GO:=go
-DC:=docker-compose
 DOCKER:=docker
 
 DATE=$(shell date)
-
+DEV_ENV=. dev-env.sh;
+DC=$(DEV_ENV) docker-compose
 
 
 build-app:
@@ -18,7 +19,7 @@ build: build-app build-docker
 
 
 app-docker-up:
-	$(DOCKER) run -d --name echoapi -p 8080:8080 mrupgrade/echoapi:latest
+	$(DOCKER) run -d --name echoapi --env-file -p 8080:8080 mrupgrade/echoapi:latest
 
 app-docker-down:
 	-$(DOCKER) rm -f echoapi
