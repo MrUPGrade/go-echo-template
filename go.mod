@@ -1,6 +1,7 @@
-module gorest
+module echoapi
 
 require (
+	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/labstack/echo v3.3.5+incompatible
 	github.com/labstack/gommon v0.2.8
 	github.com/mattn/go-colorable v0.0.9 // indirect

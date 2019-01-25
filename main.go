@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"net/http"
@@ -26,6 +27,11 @@ func (UserResource) postUser(c echo.Context) (err error) {
 }
 
 func main() {
+	config, err := loadConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	e := echo.New()
 	if l, ok := e.Logger.(*log.Logger); ok {
 		l.SetHeader("${time_rfc3339} ${level}")
@@ -34,7 +40,7 @@ func main() {
 
 	userResource := UserResource{}
 
-	e.GET("/user", userResource.getUser)
-	e.POST("/user", userResource.postUser)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.GET("/users", userResource.getUser)
+	e.POST("/users", userResource.postUser)
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", config.ServerHost, config.ServerPort)))
 }
