@@ -34,7 +34,9 @@ func main() {
 
 	db, err := ConnectToDB()
 	defer db.Close()
-	db.AutoMigrate(&ToDo{})
+	db.LogMode(true)
+	db.SingularTable(true)
+	db.AutoMigrate(&Todo{})
 
 	e := echo.New()
 	e.Use(middleware.Logger())

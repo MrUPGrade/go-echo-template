@@ -2,6 +2,8 @@ SHELL=/bin/bash
 GO:=go
 DOCKER:=docker
 
+DOCKER_IMAGE=mrupgrade/echoapi:latest
+
 DATE=$(shell date)
 DEV_ENV=. dev-env.sh;
 DC=$(DEV_ENV) docker-compose
@@ -18,8 +20,14 @@ build-docker:
 build: build-app build-docker
 
 
+
+publish-docker:
+	$(DOCKER) push $(DOCKER_IMAGE)
+
+
+
 app-docker-up:
-	$(DOCKER) run -d --name echoapi --env-file -p 8080:8080 mrupgrade/echoapi:latest
+	$(DOCKER) run -d --name echoapi --env-file -p 8080:8080 $(DOCKER_IMAGE)
 
 app-docker-down:
 	-$(DOCKER) rm -f echoapi

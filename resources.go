@@ -30,7 +30,7 @@ type ToDoResource struct {
 func (ToDoResource) getToDos(c echo.Context) error {
 	cc := c.(*CustomContext)
 
-	todos := make([]ToDo, 0)
+	todos := make([]Todo, 0)
 	cc.DB.Limit(10).Order("id").Find(&todos)
 
 	return c.JSON(http.StatusOK, todos)
@@ -39,7 +39,7 @@ func (ToDoResource) getToDos(c echo.Context) error {
 func (ToDoResource) postToDo(c echo.Context) error {
 	cc := c.(*CustomContext)
 
-	todo := new(ToDo)
+	todo := new(Todo)
 	if err := c.Bind(todo); err != nil {
 		c.Logger().Print(err)
 		return c.JSON(http.StatusBadRequest, nil)

@@ -2,7 +2,7 @@ package main
 
 import "github.com/jinzhu/gorm"
 
-type ToDo struct {
+type Todo struct {
 	gorm.Model
 	Title       string
 	Description string
