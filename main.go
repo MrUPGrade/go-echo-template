@@ -47,7 +47,7 @@ func main() {
 	}
 
 	pei := NewPromEchoInstrumentation()
-	e.Use(pei.PrometheusStatsPushMiddleware)
+	e.Use(pei.PrometheusStatsMiddleware)
 	e.GET("/metrics", pei.MetricsEndpoint)
 
 	userResource := UserResource{}
