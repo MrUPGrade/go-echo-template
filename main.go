@@ -13,8 +13,7 @@ type CustomContext struct {
 	DB *gorm.DB
 }
 
-func EchoMiddleware(db *gorm.DB) func(h echo.HandlerFunc) echo.HandlerFunc {
-
+func CustomContextMiddleware(db *gorm.DB) func(h echo.HandlerFunc) echo.HandlerFunc {
 	return func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &CustomContext{
@@ -40,12 +39,16 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Use(EchoMiddleware(db))
+	e.Use(CustomContextMiddleware(db))
 
 	if l, ok := e.Logger.(*log.Logger); ok {
 		l.SetHeader("${time_rfc3339} ${level}")
 		l.SetLevel(log.DEBUG)
 	}
+
+	pei := NewPromEchoInstrumentation()
+	e.Use(pei.PrometheusStatsPushMiddleware)
+	e.GET("/metrics", pei.MetricsEndpoint)
 
 	userResource := UserResource{}
 
@@ -56,6 +59,9 @@ func main() {
 
 	e.GET("/todos", todoResource.getToDos)
 	e.POST("/todos", todoResource.postToDo)
+
+	//promResource := NewPromPushResource()
+	//e.GET("/prom", promResource.get)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", config.ServerHost, config.ServerPort)))
 }
