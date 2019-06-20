@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ type AppConfig struct {
 	ServerPort string `default:"8080"`
 }
 
-func loadConfig() (*AppConfig, error) {
+func LoadConfig() (*AppConfig, error) {
 	appConfig := &AppConfig{}
 	err := envconfig.Process("et", appConfig)
 	if err != nil {

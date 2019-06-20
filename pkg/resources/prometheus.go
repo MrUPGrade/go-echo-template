@@ -1,13 +1,12 @@
-package main
+package resources
 
 import (
 	"fmt"
 	"github.com/labstack/echo"
-	"net/http"
-	"time"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
+	"net/http"
+	"time"
 )
 
 type PromPushResource struct {
@@ -43,7 +42,7 @@ type JSONMessage struct {
 	Message string
 }
 
-func (ctrl PromPushResource) get(c echo.Context) error {
+func (ctrl PromPushResource) Get(c echo.Context) error {
 	ctrl.VisitCounter.Add(1)
 	return c.JSON(http.StatusOK, JSONMessage{"Everything ok"})
 }
