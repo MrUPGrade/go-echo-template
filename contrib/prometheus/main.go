@@ -1,4 +1,4 @@
-package main
+package prometheus
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type promEchoInstrumentation struct {
+type PrometheusInstrumentation struct {
 	RequestCounter *RequestCounter
 	registry       *prometheus.Registry
 }
@@ -23,7 +23,7 @@ type RequestCounter struct {
 	BytesOut *prometheus.GaugeVec
 }
 
-func (r RequestCounter) AddValue(latency, bytesIn, bytesOut int, labels prometheus.Labels) {
+func (r RequestCounter) addValue(latency, bytesIn, bytesOut int, labels prometheus.Labels) {
 	c, err := r.Count.GetMetricWith(labels)
 	if err != nil {
 		fmt.Println(err)
@@ -68,8 +68,8 @@ func newRequestCounters() *RequestCounter {
 	return rc
 }
 
-func NewPromEchoInstrumentation() *promEchoInstrumentation {
-	res := &promEchoInstrumentation{}
+func NewPrometheusInstrumentation() *PrometheusInstrumentation {
+	res := &PrometheusInstrumentation{}
 
 	res.RequestCounter = newRequestCounters()
 
@@ -82,15 +82,12 @@ func NewPromEchoInstrumentation() *promEchoInstrumentation {
 	return res
 }
 
-func (p promEchoInstrumentation) PrometheusStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (p PrometheusInstrumentation) PrometheusStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		start := time.Now()
 
 		var err error
-
-		if err = next(c); err != nil {
-			c.Error(err)
-		}
+		err = next(c)
 
 		stop := time.Now()
 
@@ -109,7 +106,7 @@ func (p promEchoInstrumentation) PrometheusStatsMiddleware(next echo.HandlerFunc
 
 		bytesOut := res.Size
 
-		p.RequestCounter.AddValue(int(latency.Seconds()), bytesIn, int(bytesOut), prometheus.Labels{
+		p.RequestCounter.addValue(int(latency.Seconds()), bytesIn, int(bytesOut), prometheus.Labels{
 			"status_code": fmt.Sprintf("%d", res.Status),
 			"uri":         req.RequestURI,
 			"method":      req.Method,
@@ -119,7 +116,7 @@ func (p promEchoInstrumentation) PrometheusStatsMiddleware(next echo.HandlerFunc
 	}
 }
 
-func (p promEchoInstrumentation) MetricsEndpoint(c echo.Context) error {
+func (p PrometheusInstrumentation) MetricsEndpoint(c echo.Context) error {
 	contentType := expfmt.Negotiate(c.Request().Header)
 	metrics, err := p.registry.Gather()
 	if err != nil {

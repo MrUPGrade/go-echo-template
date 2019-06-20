@@ -1,10 +1,11 @@
 package main
 
 import (
+	gorm2 "echoapi/contrib/gorm"
+	"echoapi/contrib/prometheus"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 )
 
@@ -31,14 +32,14 @@ func main() {
 		panic(err)
 	}
 
-	db, err := ConnectToDB()
+	db, err := gorm2.ConnectToDB()
 	defer db.Close()
 	db.LogMode(true)
 	db.SingularTable(true)
 	db.AutoMigrate(&Todo{})
 
 	e := echo.New()
-	e.Use(middleware.Logger())
+	//e.Use(middleware.Logger())
 	e.Use(CustomContextMiddleware(db))
 
 	if l, ok := e.Logger.(*log.Logger); ok {
@@ -46,7 +47,7 @@ func main() {
 		l.SetLevel(log.DEBUG)
 	}
 
-	pei := NewPromEchoInstrumentation()
+	pei := prometheus.NewPrometheusInstrumentation()
 	e.Use(pei.PrometheusStatsMiddleware)
 	e.GET("/metrics", pei.MetricsEndpoint)
 
@@ -59,9 +60,6 @@ func main() {
 
 	e.GET("/todos", todoResource.getToDos)
 	e.POST("/todos", todoResource.postToDo)
-
-	//promResource := NewPromPushResource()
-	//e.GET("/prom", promResource.get)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", config.ServerHost, config.ServerPort)))
 }
